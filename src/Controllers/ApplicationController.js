@@ -2,6 +2,15 @@ const express = require('express')
 const router = express.Router()
 const Application = require('../Modals/ApplicationModal')
 const Jobs = require('../Modals/JobsModal')
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail', 
+    auth: {
+      user: 'your-email@gmail.com', 
+      pass: 'your-email-password', 
+    },
+  });
 
 router.post('/addApplication', async (req, res) => {
     try {
@@ -67,6 +76,15 @@ router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
         applicant.status = "Selected";
         applicant.selected = true
         applicant.save()
+
+        const mailOptions = {
+            from: 'your-email@gmail.com',
+            to: applicant.email, 
+            subject: 'Congratulations! You have been selected',
+            text: `Dear ${applicant.name},\n\nCongratulations! We are pleased to inform you that you have been selected for the position. We will contact you soon with further details.\n\nBest regards,\nYour Company Name`,
+          };
+      
+          await transporter.sendMail(mailOptions);
         res.status(200).send("set status selected")
 
     } catch (e) {

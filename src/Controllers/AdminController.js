@@ -20,13 +20,15 @@ router.post('/checkAdminLogin',async(req,res)=>{
     try{
         const {username,password} = req.body
 
-        const admin = Admin.findOne({username})
+        const admin =await Admin.findOne({username:username})
+        // console.log(admin);
+        
 
         if(!admin){
-            return res.status(401).json({ message: 'Invalid username or password' });
+            return res.status(401).json({ message: 'Invalid username' });
         }
 
-        if (password !== admin.password) {
+        if (username != admin.username) {
 
             return res.status(401).json({ message: 'Invalid username or password' });
           }
@@ -39,3 +41,5 @@ router.post('/checkAdminLogin',async(req,res)=>{
         res.status(500).send('error found')
     }
 })
+
+module.exports = router;
