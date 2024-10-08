@@ -35,8 +35,9 @@ app.use(cors(
 ))
 
 const AdminRouter = require('./src/Controllers/AdminController')
-
+const JobRouter = require('./src/Controllers/JobsController')
 app.use("/Admin",AdminRouter)
+app.use("/job",JobRouter)
 
 
 

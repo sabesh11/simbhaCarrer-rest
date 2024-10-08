@@ -5,7 +5,6 @@ const jobsSchema = new mongoose.Schema({
     jobDescription:{type:String,require:true},
     jobLocation:{type:String,require:true},
     jobType:{type:String,require:true},
-    jobExpiriyDate:{type:String,require:true},
     Salary:{type:String,require:true}
 }, { timestamps: true })
 
