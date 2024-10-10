@@ -2,15 +2,10 @@ const express = require('express')
 const router = express.Router()
 const Application = require('../Modals/ApplicationModal')
 const Jobs = require('../Modals/JobsModal')
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
+const nodemailer =require('nodemailer')
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail', 
-    auth: {
-      user: 'your-email@gmail.com', 
-      pass: 'your-email-password', 
-    },
-  });
+
 
 router.post('/addApplication', async (req, res) => {
     try {
@@ -110,3 +105,69 @@ router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
         res.status(500).send("some error occur")
     }
 })
+
+let otpStore = {};
+
+
+const generateOTP = () => {
+  return Math.floor(1000 + Math.random() * 9000); 
+};
+
+router.post('/send-otp/:email', (req, res) => {
+const { email } = req.params;
+  console.log(email);
+  
+    
+    
+  
+  
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465, // or 587 for TLS
+        secure: true,
+        service: 'gmail', 
+        auth: {
+          user: 'sabeshedextech@gmail.com', 
+          pass: 'rpon righ olvs metw', 
+        },
+        tls: {
+            rejectUnauthorized: false
+          }
+      }); 
+      
+
+      const otp = generateOTP();
+
+      otpStore[email] = otp; 
+
+
+    const mailOptions = {
+      from: 'sabeshedextech@gmail.com',
+      to: email,
+      subject: 'Your OTP Code',
+      text: `Your OTP code is: ${otp}`
+    };
+  
+    
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error sending OTP', error });
+      }
+      res.status(200).json({ message: 'OTP sent successfully', otp });
+    });
+  });
+
+
+router.post('/verify-otp', (req, res) => {
+    const { email,otp } = req.body;
+  
+    
+    if (otpStore[email] && otpStore[email] == otp) {
+      delete otpStore[email]; 
+      res.status(200).json({ message: 'OTP verified successfully' });
+    } else {
+      res.status(400).json({ message: 'Invalid OTP' });
+    }
+  });
+
+  module.exports = router;
