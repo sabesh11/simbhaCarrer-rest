@@ -53,4 +53,15 @@ router.put("/updatejob/:jobId",async (req,res)=>{
     }
 })
 
+router.get("/getJob/:jobId", async(req,res)=>{
+    try{
+        const {jobId} =req.params;
+        const jobs = await Jobs.findById(jobId)
+        res.status(200).send(jobs)
+    }
+    catch(e){
+        res.status(500).send("error in getting jobs")
+    }
+})
+
 module.exports = router;
