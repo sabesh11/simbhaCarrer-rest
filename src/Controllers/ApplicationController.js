@@ -4,29 +4,46 @@ const Application = require('../Modals/ApplicationModal')
 const Jobs = require('../Modals/JobsModal')
 // const nodemailer = require('nodemailer');
 const nodemailer =require('nodemailer')
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose')
 
+const resumeUploadPath = path.join('C:', 'simbha-carrers', 'uploads','resume');
+const imageUploadPath = path.join('C:', 'simbha-carrers', 'uploads');
+
+if (!fs.existsSync(resumeUploadPath)) {
+  fs.mkdirSync(resumeUploadPath, { recursive: true });
+}
+if (!fs.existsSync(imageUploadPath)) {
+  fs.mkdirSync(imageUploadPath, { recursive: true });
+}
+
+const upload = multer({ dest: 'temp/' });
 
 
 router.post('/addApplication', async (req, res) => {
     try {
-        const { jobId, applicant, resume, email, image, } = req.body
+        const { job, applicant, resume, email, image,mobilenumber } = req.body
 
-        const jobs = Jobs.findById(jobId)
+        const jobs = Jobs.findById(job._id)
 
         if (!jobs) {
             res.status(404).send("job not found")
         }
 
         const application = new Application({
-            job: jobId,
+            job: job,
             applicant: applicant,
             resume: resume,
             email: email,
             image: image,
+            mobilenumber:mobilenumber,
         })
 
         await application.save()
-        res.status(201).send("Application Added Successfully")
+        res.status(201).send(application)
     } catch (error) {
         if (error instanceof mongoose.Error.ValidationError) {
             return res.status(400).json({ message: 'Validation Error', errors: error.errors });
@@ -38,7 +55,7 @@ router.post('/addApplication', async (req, res) => {
 
 router.get("/getAllApplicant", async (req, res) => {
     try {
-        const applicant = await Application.find()
+        const applicant = await Application.find() .populate('job'); 
         res.status(200).send(applicant)
     } catch (e) {
         console.error(e)
@@ -169,5 +186,90 @@ router.post('/verify-otp', (req, res) => {
       res.status(400).json({ message: 'Invalid OTP' });
     }
   });
+
+  router.post('/upload', upload.single('file'), (req, res) => {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).send('No file uploaded.');
+    }
+  
+    const uniqueFileName = `${uuidv4()}_${file.originalname}`;
+    const destinationPath = path.join(resumeUploadPath, uniqueFileName);
+  
+    // Move file from temp folder to the desired location
+    fs.rename(file.path, destinationPath, (err) => {
+      if (err) {
+        return res.status(500).send('Failed to upload file.');
+      }
+  
+      console.log('File saved at:', destinationPath);
+      res.status(200).send(uniqueFileName);
+    });
+  });
+  
+  // Upload image file
+  router.post('/image/upload', upload.single('file'), (req, res) => {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).send('No image uploaded.');
+    }
+  
+    const uniqueFileName = `${uuidv4()}_${file.originalname}`;
+    const destinationPath = path.join(imageUploadPath, uniqueFileName);
+  
+    // Move image from temp folder to the desired location
+    fs.rename(file.path, destinationPath, (err) => {
+      if (err) {
+        return res.status(500).send('Failed to upload image.');
+      }
+  
+      console.log('Image saved at:', destinationPath);
+      res.status(200).send(uniqueFileName);
+    });
+  });
+
+  router.get('/image/:filename', (req, res) => {
+    const filename = req.params.filename;
+   // Specify your image directory
+
+    // Construct the full path to the image
+    const filePath = path.join(imageUploadPath, filename);
+
+    // Check if the file exists
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+        if (err) {
+            return res.status(404).send('File not found');
+        }
+
+        // Send the image file
+        res.sendFile(filePath, { 
+            headers: {
+                'Content-Type': 'image/jpeg' // Adjust the content type as needed
+            }
+        });
+    });
+});
+
+router.get('/resume/:filename', (req, res) => {
+  const filename = req.params.filename;
+ // Specify your image directory
+
+  // Construct the full path to the image
+  const filePath = path.join(resumeUploadPath, filename);
+
+  // Check if the file exists
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+          return res.status(404).send('File not found');
+      }
+
+      
+      res.sendFile(filePath, { 
+          headers: {
+              'Content-Type': 'application/pdf' // Adjust the content type as needed
+          }
+      });
+  });
+});
 
   module.exports = router;

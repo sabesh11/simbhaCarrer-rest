@@ -7,7 +7,7 @@ const ApplicationSchema = new mongoose.Schema({
   email: { type: String },
   image: { type: String },
   mobilenumber:{type:String,require:true},
-  status: { type: String, enum: ['shortlisted', 'selected', 'attended', 'rejected','not-attended','not-responding'], default: 'pending' },
+  status: { type: String, enum: ['shortlisted', 'selected', 'attended', 'rejected','not-attended','not-responding','pending'], default: 'pending' },
   selected:{type:Boolean,default:false},
   rejected:{type:Boolean,default:false},
   appliedAt: { type: Date, default: Date.now }
