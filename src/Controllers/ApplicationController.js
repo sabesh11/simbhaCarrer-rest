@@ -82,6 +82,22 @@ router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
     try {
         const { ApplicantId } = req.params;
         const applicant = await Application.findById(ApplicantId);
+
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 465, // or 587 for TLS
+          secure: true,
+          service: 'gmail', 
+          auth: {
+            user: 'sabeshedextech@gmail.com', 
+            pass: 'rpon righ olvs metw', 
+          },
+          tls: {
+              rejectUnauthorized: false
+            }
+        }); 
+      
+        
         if (!applicant) {
            return res.status(0).send("appliant not found")
         }
@@ -90,10 +106,10 @@ router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
         applicant.save()
 
         const mailOptions = {
-            from: 'your-email@gmail.com',
+            from: 'sabeshedextech@gmail.com',
             to: applicant.email, 
             subject: 'Congratulations! You have been selected',
-            text: `Dear ${applicant.name},\n\nCongratulations! We are pleased to inform you that you have been selected for the position. We will contact you soon with further details.\n\nBest regards,\nYour Company Name`,
+            text: `Dear ${applicant.applicant},\n\nCongratulations! We are pleased to inform you that you have been selected for the position. We will contact you soon with further details.\n\nBest regards,\nYour Simbha-Solutions`,
           };
       
           await transporter.sendMail(mailOptions);
@@ -105,16 +121,39 @@ router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
     }
 })
 
-router.post("/setApplicantStatusSelected/:ApplicantId", async (req, res) => {
+router.post("/setApplicantStatusRejected/:ApplicantId", async (req, res) => {
     try {
         const { ApplicantId } = req.params;
         const applicant = await Application.findById(ApplicantId);
+        const transporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 465, // or 587 for TLS
+          secure: true,
+          service: 'gmail', 
+          auth: {
+            user: 'sabeshedextech@gmail.com', 
+            pass: 'rpon righ olvs metw', 
+          },
+          tls: {
+              rejectUnauthorized: false
+            }
+        }); 
+      
         if (!applicant) {
            return res.status(0).send("appliant not found")
         }
         applicant.status = "rejected";
         applicant.rejected = true
         applicant.save()
+
+        const mailOptions = {
+          from: 'sabeshedextech@gmail.com',
+          to: applicant.email, 
+          subject: 'Thank You for Your Application',
+          text: `Dear ${applicant.applicant},\n\nThank you for taking the time to apply for the position. After careful consideration, we regret to inform you that we have decided to move forward with other candidates at this time.\n\nWe appreciate your interest in our company and encourage you to apply for future openings.\n\nBest regards,\n Simbha-Solution`,
+        };
+    
+        await transporter.sendMail(mailOptions);
         res.status(200).send("set status rejected")
 
     } catch (e) {
